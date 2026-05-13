@@ -1,0 +1,20 @@
+{
+  "name": "ml-parfums",
+  "version": "1.0.0",
+  "description": "M&L Parfums storefront with a portable Node.js backend.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "parfums",
+    "storefront",
+    "node"
+  ],
+  "author": "M&L Parfums",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
