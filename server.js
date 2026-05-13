@@ -1,147 +1,25 @@
 const http = require("node:http");
 const fs = require("node:fs");
+const mariadb = require("mariadb");
 const path = require("node:path");
 const { URL } = require("node:url");
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
-const DATA_DIR = path.join(ROOT, "data");
-const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
+const DB_NAME = process.env.DB_NAME || "ml_parfums";
+const DB_SOCKET = process.env.DB_SOCKET || "/var/lib/mysql/mysql.sock";
 
-const products = [
-  {
-    id: 1,
-    name: "Burberry Black",
-    category: "catalog",
-    price: 75.99,
-    oldPrice: 99.99,
-    currency: "AZN",
-    image: "/img/product/1.jpg",
-    rating: 4.5
-  },
-  {
-    id: 2,
-    name: "Amber Wood",
-    category: "catalog",
-    price: 68.5,
-    oldPrice: 89.99,
-    currency: "AZN",
-    image: "/img/product/2.jpg",
-    rating: 4.5
-  },
-  {
-    id: 3,
-    name: "Noir Essence",
-    category: "catalog",
-    price: 82,
-    oldPrice: 110,
-    currency: "AZN",
-    image: "/img/product/3.jpg",
-    rating: 5
-  },
-  {
-    id: 4,
-    name: "Velvet Rose",
-    category: "catalog",
-    price: 59.99,
-    oldPrice: 79.99,
-    currency: "AZN",
-    image: "/img/product/4.jpg",
-    rating: 4
-  },
-  {
-    id: 5,
-    name: "Citrus Musk",
-    category: "catalog",
-    price: 64,
-    oldPrice: 84,
-    currency: "AZN",
-    image: "/img/product/5.jpg",
-    rating: 4.5
-  },
-  {
-    id: 6,
-    name: "Royal Oud",
-    category: "catalog",
-    price: 95,
-    oldPrice: 129,
-    currency: "AZN",
-    image: "/img/product/6.jpg",
-    rating: 5
-  },
-  {
-    id: 7,
-    name: "Golden Bloom",
-    category: "products",
-    price: 72,
-    oldPrice: 96,
-    currency: "AZN",
-    image: "/img/product/7.jpg",
-    rating: 4.5
-  },
-  {
-    id: 8,
-    name: "Midnight Pour Femme",
-    category: "products",
-    price: 88,
-    oldPrice: 115,
-    currency: "AZN",
-    image: "/img/product/8.jpg",
-    rating: 5
-  },
-  {
-    id: 9,
-    name: "Fresh Signature",
-    category: "products",
-    price: 61,
-    oldPrice: 79,
-    currency: "AZN",
-    image: "/img/product/9.jpg",
-    rating: 4.5
-  }
-];
-
-const reviews = [
-  {
-    name: "Jhon Dacker",
-    image: "/img/male_user.png",
-    rating: 4.5,
-    text: "Fast delivery and a clean, lasting fragrance. The package arrived in perfect condition."
-  },
-  {
-    name: "Helena Jackson",
-    image: "/img/female_user.png",
-    rating: 5,
-    text: "The scent recommendation was accurate and the perfume stayed fresh through the day."
-  },
-  {
-    name: "Mickel Krew",
-    image: "/img/male_user.png",
-    rating: 4.5,
-    text: "Good prices, original products and quick support from the store team."
-  }
-];
-
-const blogs = [
-  {
-    title: "Refreshing and long-lasting perfumes",
-    image: "/img/product/10.jpg",
-    date: "07 January 2026",
-    excerpt: "How to choose a daily fragrance that stays balanced from morning to evening."
-  },
-  {
-    title: "How to store premium fragrances",
-    image: "/img/product/9.jpg",
-    date: "18 February 2026",
-    excerpt: "Simple storage habits that protect perfume notes, color and projection."
-  },
-  {
-    title: "Choosing scents for every season",
-    image: "/img/product/8.jpg",
-    date: "12 March 2026",
-    excerpt: "A practical guide to matching fresh, woody and floral notes with the weather."
-  }
-];
+const pool = mariadb.createPool({
+  host: process.env.DB_HOST || "localhost",
+  port: Number(process.env.DB_PORT || 3306),
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: DB_NAME,
+  socketPath: process.env.DB_SOCKET === "" ? undefined : DB_SOCKET,
+  connectionLimit: 5,
+  decimalAsNumber: true,
+  insertIdAsNumber: true
+});
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -182,24 +60,6 @@ function readBody(req) {
   });
 }
 
-function readMessages() {
-  if (!fs.existsSync(MESSAGES_FILE)) {
-    return [];
-  }
-  try {
-    return JSON.parse(fs.readFileSync(MESSAGES_FILE, "utf8"));
-  } catch {
-    return [];
-  }
-}
-
-function saveMessage(message) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  const messages = readMessages();
-  messages.push(message);
-  fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages, null, 2));
-}
-
 function sanitizeMessage(input) {
   const name = String(input.name || "").trim();
   const email = String(input.email || "").trim();
@@ -225,6 +85,59 @@ function sanitizeMessage(input) {
   };
 }
 
+function formatDate(value) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  }).format(new Date(value));
+}
+
+function mapProduct(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    price: row.price,
+    oldPrice: row.old_price,
+    currency: row.currency,
+    image: row.image,
+    rating: row.rating
+  };
+}
+
+function mapReview(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    image: row.image,
+    rating: row.rating,
+    text: row.text
+  };
+}
+
+function mapBlog(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    image: row.image,
+    date: formatDate(row.published_on),
+    excerpt: row.excerpt
+  };
+}
+
+async function dbQuery(sql, params = []) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    return await connection.query(sql, params);
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
 function safeFilePath(pathname) {
   const decoded = decodeURIComponent(pathname);
   const requested = decoded === "/" ? "/index.html" : decoded;
@@ -238,19 +151,31 @@ function safeFilePath(pathname) {
 
 async function handleApi(req, res, url) {
   if (req.method === "GET" && url.pathname === "/api/health") {
-    return sendJson(res, 200, { ok: true, service: "M&L Parfums API" });
+    try {
+      await dbQuery("SELECT 1");
+      return sendJson(res, 200, {
+        ok: true,
+        service: "M&L Parfums API",
+        database: DB_NAME
+      });
+    } catch (error) {
+      return sendJson(res, 500, { ok: false, error: error.message });
+    }
   }
 
   if (req.method === "GET" && url.pathname === "/api/products") {
-    return sendJson(res, 200, products);
+    const rows = await dbQuery("SELECT * FROM products ORDER BY id");
+    return sendJson(res, 200, rows.map(mapProduct));
   }
 
   if (req.method === "GET" && url.pathname === "/api/reviews") {
-    return sendJson(res, 200, reviews);
+    const rows = await dbQuery("SELECT * FROM reviews ORDER BY id");
+    return sendJson(res, 200, rows.map(mapReview));
   }
 
   if (req.method === "GET" && url.pathname === "/api/blogs") {
-    return sendJson(res, 200, blogs);
+    const rows = await dbQuery("SELECT * FROM blogs ORDER BY published_on DESC, id DESC");
+    return sendJson(res, 200, rows.map(mapBlog));
   }
 
   if (req.method === "POST" && url.pathname === "/api/contact") {
@@ -261,8 +186,15 @@ async function handleApi(req, res, url) {
       if (result.error) {
         return sendJson(res, 400, { ok: false, error: result.error });
       }
-      saveMessage(result.value);
-      return sendJson(res, 201, { ok: true, message: "Message received." });
+      const saved = await dbQuery(
+        "INSERT INTO messages (name, email, phone, message) VALUES (?, ?, ?, ?)",
+        [result.value.name, result.value.email, result.value.phone, result.value.message]
+      );
+      return sendJson(res, 201, {
+        ok: true,
+        id: saved.insertId,
+        message: "Message received."
+      });
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: error.message });
     }

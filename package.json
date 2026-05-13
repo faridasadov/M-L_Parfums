@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "db:import": "mysql -uroot < db/schema.sql",
+    "db:export": "mysqldump -uroot --databases ml_parfums > db/export.sql"
   },
   "keywords": [
     "parfums",
@@ -16,5 +18,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "mariadb": "^3.5.2"
   }
 }
