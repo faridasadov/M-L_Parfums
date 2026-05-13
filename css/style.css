@@ -724,6 +724,17 @@ body {
   color: var(--ivory);
 }
 
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+  width: 0;
+  height: 0.3rem;
+  background: linear-gradient(90deg, #f8dea0, #a97725);
+  box-shadow: 0 0 2rem rgba(217, 182, 111, 0.65);
+}
+
 section {
   padding: 7rem 7%;
 }
@@ -810,11 +821,81 @@ section {
   min-height: 92vh;
   position: relative;
   isolation: isolate;
+  overflow: hidden;
   background:
     linear-gradient(90deg, rgba(5, 5, 7, 0.18) 0%, rgba(5, 5, 7, 0.34) 42%, rgba(5, 5, 7, 0.92) 100%),
     url(../img/2016696.webp) no-repeat;
   background-position: center;
   background-size: cover;
+}
+
+.hero-orbit {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero-orbit span {
+  position: absolute;
+  width: 34rem;
+  height: 34rem;
+  border: 0.1rem solid rgba(217, 182, 111, 0.18);
+  border-radius: 50%;
+  animation: floatOrbit 12s ease-in-out infinite;
+}
+
+.hero-orbit span:nth-child(1) {
+  right: 7%;
+  top: 16%;
+}
+
+.hero-orbit span:nth-child(2) {
+  right: 24%;
+  bottom: 12%;
+  width: 18rem;
+  height: 18rem;
+  animation-delay: -3s;
+}
+
+.hero-orbit span:nth-child(3) {
+  left: 9%;
+  bottom: 8%;
+  width: 12rem;
+  height: 12rem;
+  animation-delay: -6s;
+}
+
+.hero-showcase {
+  position: absolute;
+  left: 9%;
+  bottom: 9%;
+  width: min(25vw, 28rem);
+  min-width: 18rem;
+  padding: 2.2rem;
+  border: var(--border);
+  background: rgba(10, 9, 11, 0.62);
+  box-shadow: 0 3rem 8rem rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(1.2rem);
+  transform: rotate(-5deg);
+  transition: transform 0.2s ease-out;
+}
+
+.hero-showcase img {
+  width: 100%;
+  aspect-ratio: 1 / 1.18;
+  object-fit: contain;
+  filter: drop-shadow(0 2rem 2rem rgba(0, 0, 0, 0.55));
+}
+
+.hero-showcase span {
+  display: block;
+  margin-top: 1rem;
+  color: var(--main-color);
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .home::after {
@@ -891,6 +972,16 @@ section {
   font-size: 2.2rem;
 }
 
+.section-kicker {
+  margin: 0 auto 0.8rem;
+  color: var(--main-color);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .about .row,
 .contact .row {
   border: var(--border);
@@ -938,6 +1029,24 @@ section {
   overflow: hidden;
 }
 
+.catalog .box-container .box::after,
+.products .box-container .box::after,
+.blogs .box-container .box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.11) 45%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+
+.catalog .box-container .box:hover::after,
+.products .box-container .box:hover::after,
+.blogs .box-container .box:hover::after {
+  transform: translateX(120%);
+}
+
 .catalog .box-container .box::before,
 .products .box-container .box::before,
 .review .box-container .box::before,
@@ -969,6 +1078,20 @@ section {
   max-width: 100%;
   object-fit: contain;
   filter: drop-shadow(0 1.8rem 2rem rgba(0, 0, 0, 0.5));
+}
+
+.product-badge {
+  position: absolute;
+  top: 1.4rem;
+  left: 1.4rem;
+  z-index: 2;
+  padding: 0.55rem 1rem;
+  border: 0.1rem solid rgba(217, 182, 111, 0.35);
+  background: rgba(217, 182, 111, 0.12);
+  color: var(--main-color);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .catalog .box-container .box h3,
@@ -1062,6 +1185,42 @@ section {
   border-color: var(--line);
 }
 
+.reveal {
+  opacity: 0;
+  transform: translateY(2.2rem);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cart-item.fresh {
+  animation: slideCart 0.28s ease-out;
+}
+
+@keyframes slideCart {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes floatOrbit {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(1.2rem, -1.4rem, 0) scale(1.05);
+  }
+}
+
 @media (max-width: 768px) {
   section {
     padding: 5rem 2rem;
@@ -1104,5 +1263,10 @@ section {
   .hero-metrics {
     grid-template-columns: 1fr;
     margin-left: 0;
+  }
+
+  .hero-showcase,
+  .hero-orbit {
+    display: none;
   }
 }

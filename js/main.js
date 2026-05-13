@@ -3,6 +3,7 @@ const searchForm = document.querySelector(".search-form");
 const cartItem = document.querySelector(".cart-items-container");
 const contactForm = document.querySelector("#contact-form");
 const contactStatus = document.querySelector("#contact-status");
+const progress = document.querySelector("#scroll-progress");
 
 document.querySelector("#menu-btn").onclick = () => {
   navbar.classList.toggle("active");
@@ -26,7 +27,15 @@ window.onscroll = () => {
   navbar.classList.remove("active");
   searchForm.classList.remove("active");
   cartItem.classList.remove("active");
+  updateProgress();
 };
+
+function updateProgress() {
+  if (!progress) return;
+  const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+  const percent = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+  progress.style.width = `${percent}%`;
+}
 
 function formatPrice(product) {
   return `${product.price.toFixed(2)} ${product.currency}`;
@@ -52,6 +61,7 @@ function productCard(product, compact = false) {
   if (compact) {
     return `
       <div class="box">
+        <span class="product-badge">${product.rating >= 5 ? "Top Pick" : "Signature"}</span>
         <img src="${product.image}" alt="${product.name}" />
         <h3>${product.name}</h3>
         <div class="price">${formatPrice(product)} <span>${product.oldPrice.toFixed(2)} ${product.currency}</span></div>
@@ -62,6 +72,7 @@ function productCard(product, compact = false) {
 
   return `
     <div class="box">
+      <span class="product-badge">${product.rating >= 5 ? "Icon" : "New"}</span>
       <div class="icons">
         <a href="#contact" class="fas fa-shopping-cart" aria-label="Add ${product.name} to cart"></a>
         <a href="#products" class="fas fa-heart" aria-label="Save ${product.name}"></a>
@@ -94,6 +105,9 @@ async function loadProducts() {
     .filter((product) => product.category === "products")
     .map((product) => productCard(product))
     .join("");
+
+  wireProductInteractions();
+  observeReveal();
 }
 
 async function loadReviews() {
@@ -112,6 +126,7 @@ async function loadReviews() {
       `
     )
     .join("");
+  observeReveal();
 }
 
 async function loadBlogs() {
@@ -134,6 +149,7 @@ async function loadBlogs() {
       `
     )
     .join("");
+  observeReveal();
 }
 
 async function submitContact(event) {
@@ -143,26 +159,112 @@ async function submitContact(event) {
   contactStatus.textContent = "Sending...";
   contactStatus.className = "form-status";
 
-  const response = await fetch("/api/contact", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const result = await response.json();
+  try {
+    const response = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
 
-  if (!response.ok) {
-    contactStatus.textContent = result.error || "Message could not be sent.";
+    if (!response.ok) {
+      contactStatus.textContent = result.error || "Message could not be sent.";
+      contactStatus.className = "form-status error";
+      return;
+    }
+
+    contactForm.reset();
+    contactStatus.textContent = "Message sent successfully.";
+    contactStatus.className = "form-status success";
+  } catch {
+    contactStatus.textContent = "Backend is not available on this static preview.";
     contactStatus.className = "form-status error";
-    return;
   }
-
-  contactForm.reset();
-  contactStatus.textContent = "Message sent successfully.";
-  contactStatus.className = "form-status success";
 }
 
 contactForm.addEventListener("submit", submitContact);
 
-loadProducts().catch(() => {});
+function wireProductInteractions() {
+  const searchInput = document.querySelector("#search-box");
+  const cartContainer = document.querySelector(".cart-items-container");
+  const cartButtons = [...document.querySelectorAll('a[aria-label^="Add"], .catalog .box .btn')];
+
+  if (!searchInput.dataset.wired) {
+    searchInput.dataset.wired = "true";
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.trim().toLowerCase();
+      document.querySelectorAll(".catalog .box, .products .box").forEach((card) => {
+        const visible = card.textContent.toLowerCase().includes(query);
+        card.style.display = visible ? "" : "none";
+      });
+    });
+  }
+
+  cartButtons.forEach((button) => {
+    if (button.dataset.wired) return;
+    button.dataset.wired = "true";
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      const card = event.currentTarget.closest(".box");
+      if (!card) return;
+      const name = card.querySelector("h3")?.textContent || "Selected perfume";
+      const price = card.querySelector(".price")?.childNodes[0]?.textContent.trim() || "";
+      const image = card.querySelector("img")?.getAttribute("src") || "img/product/1.jpg";
+      cartContainer.classList.add("active");
+      cartContainer.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="cart-item fresh">
+          <span class="fas fa-times"></span>
+          <img src="${image}" alt="${name}" />
+          <div class="content">
+            <h3>${name}</h3>
+            <div class="price">${price}</div>
+          </div>
+        </div>`
+      );
+    });
+  });
+}
+
+function observeReveal() {
+  const items = document.querySelectorAll(".box, .about .row, .contact .row, .heading, .section-kicker");
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12 }
+  );
+
+  items.forEach((item) => {
+    item.classList.add("reveal");
+    observer.observe(item);
+  });
+}
+
+document.addEventListener("click", (event) => {
+  if (event.target.classList.contains("fa-times")) {
+    event.target.closest(".cart-item")?.remove();
+  }
+});
+
+document.addEventListener("mousemove", (event) => {
+  const showcase = document.querySelector(".hero-showcase");
+  if (!showcase || window.innerWidth < 900) return;
+  const x = (event.clientX / window.innerWidth - 0.5) * 16;
+  const y = (event.clientY / window.innerHeight - 0.5) * 16;
+  showcase.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(-5deg)`;
+});
+
+updateProgress();
+observeReveal();
+wireProductInteractions();
+loadProducts().catch(() => {
+  wireProductInteractions();
+});
 loadReviews().catch(() => {});
 loadBlogs().catch(() => {});
