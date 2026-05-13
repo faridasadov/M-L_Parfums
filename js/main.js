@@ -4,6 +4,12 @@ const cartItem = document.querySelector(".cart-items-container");
 const contactForm = document.querySelector("#contact-form");
 const contactStatus = document.querySelector("#contact-status");
 const progress = document.querySelector("#scroll-progress");
+const cursorDot = document.querySelector(".cursor-dot");
+const cursorRing = document.querySelector(".cursor-ring");
+const quickView = document.querySelector("#quick-view");
+const quickImage = document.querySelector("#quick-image");
+const quickTitle = document.querySelector("#quick-title");
+const quickPrice = document.querySelector("#quick-price");
 
 document.querySelector("#menu-btn").onclick = () => {
   navbar.classList.toggle("active");
@@ -188,6 +194,7 @@ function wireProductInteractions() {
   const searchInput = document.querySelector("#search-box");
   const cartContainer = document.querySelector(".cart-items-container");
   const cartButtons = [...document.querySelectorAll('a[aria-label^="Add"], .catalog .box .btn')];
+  const viewButtons = [...document.querySelectorAll('a[aria-label^="View"]')];
 
   if (!searchInput.dataset.wired) {
     searchInput.dataset.wired = "true";
@@ -224,6 +231,25 @@ function wireProductInteractions() {
       );
     });
   });
+
+  viewButtons.forEach((button) => {
+    if (button.dataset.quickWired) return;
+    button.dataset.quickWired = "true";
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      const card = event.currentTarget.closest(".box");
+      if (!card) return;
+      openQuickView(card);
+    });
+  });
+}
+
+function openQuickView(card) {
+  quickImage.src = card.querySelector("img")?.getAttribute("src") || "img/product/1.jpg";
+  quickTitle.textContent = card.querySelector("h3")?.textContent || "M&L Parfums";
+  quickPrice.textContent = card.querySelector(".price")?.childNodes[0]?.textContent.trim() || "";
+  quickView.classList.add("active");
+  quickView.setAttribute("aria-hidden", "false");
 }
 
 function observeReveal() {
@@ -250,14 +276,30 @@ document.addEventListener("click", (event) => {
   if (event.target.classList.contains("fa-times")) {
     event.target.closest(".cart-item")?.remove();
   }
+  if (event.target.classList.contains("quick-close") || event.target === quickView) {
+    quickView.classList.remove("active");
+    quickView.setAttribute("aria-hidden", "true");
+  }
 });
 
 document.addEventListener("mousemove", (event) => {
+  if (cursorDot && cursorRing) {
+    cursorDot.style.transform = `translate(${event.clientX}px, ${event.clientY}px)`;
+    cursorRing.style.transform = `translate(${event.clientX}px, ${event.clientY}px)`;
+  }
+
   const showcase = document.querySelector(".hero-showcase");
   if (!showcase || window.innerWidth < 900) return;
   const x = (event.clientX / window.innerWidth - 0.5) * 16;
   const y = (event.clientY / window.innerHeight - 0.5) * 16;
   showcase.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(-5deg)`;
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    quickView.classList.remove("active");
+    quickView.setAttribute("aria-hidden", "true");
+  }
 });
 
 updateProgress();
