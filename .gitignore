@@ -3,3 +3,7 @@ npm-debug.log*
 .DS_Store
 data/messages.json
 *.tar.gz
+android/.gradle/
+android/local.properties
+android/**/build/
+dist/*.apk

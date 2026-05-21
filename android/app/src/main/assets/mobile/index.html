@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>M&L Parfums</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="appShell">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow" id="screenEyebrow">M&L Parfums</span>
+          <h1 id="screenTitle">Catalog</h1>
+        </div>
+        <button class="iconButton" type="button" id="filterButton">Filter</button>
+      </header>
+
+      <section class="view" id="homeView" data-view="home">
+        <article class="heroCard">
+          <img src="img/product/7.jpg" alt="Golden Bloom" />
+          <div>
+            <span>Today selection</span>
+            <strong>Golden Bloom</strong>
+            <p>Soft amber and rose profile for evening orders.</p>
+          </div>
+        </article>
+        <div class="statGrid">
+          <article><strong>12</strong><span>Perfumes</span></article>
+          <article><strong>4.9</strong><span>Rating</span></article>
+          <article><strong>24h</strong><span>Delivery</span></article>
+        </div>
+        <h2>Recommended</h2>
+        <section class="grid compactGrid" id="homeGrid" aria-label="Recommended perfumes"></section>
+      </section>
+
+      <section class="view active" id="catalogView" data-view="catalog">
+        <label class="searchBox">
+          <span>Search perfume</span>
+          <input id="searchInput" value="oud amber" autocomplete="off" />
+        </label>
+
+        <nav class="chips" aria-label="Category filters">
+          <button class="active" type="button" data-filter="all">All</button>
+          <button type="button" data-filter="oud">Oud</button>
+          <button type="button" data-filter="fresh">Fresh</button>
+          <button type="button" data-filter="rose">Rose</button>
+        </nav>
+
+        <section class="grid" id="productGrid" aria-label="Products"></section>
+
+        <section class="cartPanel" aria-label="Cart summary">
+          <div>
+            <span>Cart</span>
+            <strong id="cartCount">0 items</strong>
+          </div>
+          <button type="button" id="checkoutButton">Checkout</button>
+        </section>
+      </section>
+
+      <section class="view" id="cartView" data-view="cart">
+        <div class="cartList" id="cartList"></div>
+        <section class="cartPanel totalPanel">
+          <div>
+            <span>Total</span>
+            <strong id="cartTotal">0 AZN</strong>
+          </div>
+          <button type="button" id="cartCheckoutButton">Checkout</button>
+        </section>
+      </section>
+
+      <section class="view" id="profileView" data-view="profile">
+        <section class="profileCard">
+          <div class="avatar">ML</div>
+          <div>
+            <span>Welcome back</span>
+            <strong>M&L Customer</strong>
+            <p>Bonus balance: 420 points</p>
+          </div>
+        </section>
+        <div class="menuList">
+          <button type="button">Orders</button>
+          <button type="button">Saved perfumes</button>
+          <button type="button">Delivery address</button>
+          <button type="button">Support</button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="App tabs">
+      <button type="button" data-tab="home">Home</button>
+      <button class="active" type="button" data-tab="catalog">Catalog</button>
+      <button type="button" data-tab="cart">Cart</button>
+      <button type="button" data-tab="profile">Profile</button>
+    </nav>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,87 @@
+body {
+  min-height: 100vh;
+  color: #f8efe1;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(214, 154, 22, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 22%, rgba(110, 31, 50, 0.2), transparent 30%),
+    #070709;
+}
+
+.selectedPage {
+  width: min(1180px, calc(100% - 40px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 42px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(340px, 430px);
+  gap: 44px;
+  align-items: center;
+}
+
+.selectedIntro h1 {
+  margin-top: 10px;
+  font-size: clamp(48px, 7vw, 108px);
+  line-height: 0.9;
+}
+
+.selectedIntro p {
+  width: min(560px, 100%);
+  margin-top: 20px;
+  color: rgba(248, 239, 225, 0.68);
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.selectedPreview {
+  display: grid;
+  place-items: center;
+}
+
+.selectedPhone {
+  width: min(100%, 430px);
+  min-height: 790px;
+  padding-bottom: 92px;
+}
+
+.selectedPhone .shopGrid img {
+  height: 118px;
+}
+
+.selectedCart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(214, 154, 22, 0.3);
+  border-radius: 20px;
+  background: rgba(214, 154, 22, 0.12);
+}
+
+.selectedCart span {
+  display: block;
+  color: rgba(248, 239, 225, 0.62);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.selectedCart strong {
+  display: block;
+  margin-top: 3px;
+}
+
+.selectedCart button {
+  padding: 0 16px;
+  color: #160f06;
+  background: var(--gold);
+}
+
+@media (max-width: 820px) {
+  .selectedPage {
+    width: min(100% - 24px, 460px);
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding: 28px 0;
+  }
+}

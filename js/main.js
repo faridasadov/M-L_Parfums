@@ -10,29 +10,46 @@ const quickView = document.querySelector("#quick-view");
 const quickImage = document.querySelector("#quick-image");
 const quickTitle = document.querySelector("#quick-title");
 const quickPrice = document.querySelector("#quick-price");
+const menuBtn = document.querySelector("#menu-btn");
+const searchBtn = document.querySelector("#search-btn");
+const cartBtn = document.querySelector("#cart-btn");
 
-document.querySelector("#menu-btn").onclick = () => {
-  navbar.classList.toggle("active");
-  searchForm.classList.remove("active");
-  cartItem.classList.remove("active");
-};
+function toggleClass(node, className, force) {
+  if (node) node.classList.toggle(className, force);
+}
 
-document.querySelector("#search-btn").onclick = () => {
-  searchForm.classList.toggle("active");
-  navbar.classList.remove("active");
-  cartItem.classList.remove("active");
-};
+function removeClass(node, className) {
+  if (node) node.classList.remove(className);
+}
 
-document.querySelector("#cart-btn").onclick = () => {
-  cartItem.classList.toggle("active");
-  navbar.classList.remove("active");
-  searchForm.classList.remove("active");
-};
+if (menuBtn) {
+  menuBtn.onclick = () => {
+    toggleClass(navbar, "active");
+    removeClass(searchForm, "active");
+    removeClass(cartItem, "active");
+  };
+}
+
+if (searchBtn) {
+  searchBtn.onclick = () => {
+    toggleClass(searchForm, "active");
+    removeClass(navbar, "active");
+    removeClass(cartItem, "active");
+  };
+}
+
+if (cartBtn) {
+  cartBtn.onclick = () => {
+    toggleClass(cartItem, "active");
+    removeClass(navbar, "active");
+    removeClass(searchForm, "active");
+  };
+}
 
 window.onscroll = () => {
-  navbar.classList.remove("active");
-  searchForm.classList.remove("active");
-  cartItem.classList.remove("active");
+  removeClass(navbar, "active");
+  removeClass(searchForm, "active");
+  removeClass(cartItem, "active");
   updateProgress();
 };
 
@@ -98,19 +115,24 @@ function productCard(product, compact = false) {
 
 async function loadProducts() {
   const response = await fetch("/api/products");
+  if (!response.ok) throw new Error("Products API failed");
   const products = await response.json();
   const catalogList = document.querySelector("#catalog-list");
   const productsList = document.querySelector("#products-list");
 
-  catalogList.innerHTML = products
-    .filter((product) => product.category === "catalog")
-    .map((product) => productCard(product, true))
-    .join("");
+  if (catalogList) {
+    catalogList.innerHTML = products
+      .filter((product) => product.category === "catalog")
+      .map((product) => productCard(product, true))
+      .join("");
+  }
 
-  productsList.innerHTML = products
-    .filter((product) => product.category === "products")
-    .map((product) => productCard(product))
-    .join("");
+  if (productsList) {
+    productsList.innerHTML = products
+      .filter((product) => product.category === "products")
+      .map((product) => productCard(product))
+      .join("");
+  }
 
   wireProductInteractions();
   observeReveal();
@@ -118,8 +140,11 @@ async function loadProducts() {
 
 async function loadReviews() {
   const response = await fetch("/api/reviews");
+  if (!response.ok) throw new Error("Reviews API failed");
   const reviews = await response.json();
-  document.querySelector("#reviews-list").innerHTML = reviews
+  const reviewsList = document.querySelector("#reviews-list");
+  if (!reviewsList) return;
+  reviewsList.innerHTML = reviews
     .map(
       (review) => `
         <div class="box">
@@ -137,8 +162,11 @@ async function loadReviews() {
 
 async function loadBlogs() {
   const response = await fetch("/api/blogs");
+  if (!response.ok) throw new Error("Blogs API failed");
   const blogs = await response.json();
-  document.querySelector("#blogs-list").innerHTML = blogs
+  const blogsList = document.querySelector("#blogs-list");
+  if (!blogsList) return;
+  blogsList.innerHTML = blogs
     .map(
       (blog) => `
         <div class="box">
@@ -160,6 +188,7 @@ async function loadBlogs() {
 
 async function submitContact(event) {
   event.preventDefault();
+  if (!contactForm || !contactStatus) return;
   const formData = new FormData(contactForm);
   const payload = Object.fromEntries(formData.entries());
   contactStatus.textContent = "Sending...";
@@ -188,7 +217,9 @@ async function submitContact(event) {
   }
 }
 
-contactForm.addEventListener("submit", submitContact);
+if (contactForm) {
+  contactForm.addEventListener("submit", submitContact);
+}
 
 function wireProductInteractions() {
   const searchInput = document.querySelector("#search-box");
@@ -196,7 +227,7 @@ function wireProductInteractions() {
   const cartButtons = [...document.querySelectorAll('a[aria-label^="Add"], .catalog .box .btn')];
   const viewButtons = [...document.querySelectorAll('a[aria-label^="View"]')];
 
-  if (!searchInput.dataset.wired) {
+  if (searchInput && !searchInput.dataset.wired) {
     searchInput.dataset.wired = "true";
     searchInput.addEventListener("input", () => {
       const query = searchInput.value.trim().toLowerCase();
@@ -217,6 +248,7 @@ function wireProductInteractions() {
       const name = card.querySelector("h3")?.textContent || "Selected perfume";
       const price = card.querySelector(".price")?.childNodes[0]?.textContent.trim() || "";
       const image = card.querySelector("img")?.getAttribute("src") || "img/product/1.jpg";
+      if (!cartContainer) return;
       cartContainer.classList.add("active");
       cartContainer.insertAdjacentHTML(
         "afterbegin",
@@ -245,6 +277,7 @@ function wireProductInteractions() {
 }
 
 function openQuickView(card) {
+  if (!quickView || !quickImage || !quickTitle || !quickPrice) return;
   quickImage.src = card.querySelector("img")?.getAttribute("src") || "img/product/1.jpg";
   quickTitle.textContent = card.querySelector("h3")?.textContent || "M&L Parfums";
   quickPrice.textContent = card.querySelector(".price")?.childNodes[0]?.textContent.trim() || "";
@@ -254,6 +287,10 @@ function openQuickView(card) {
 
 function observeReveal() {
   const items = document.querySelectorAll(".box, .about .row, .contact .row, .heading, .section-kicker");
+  if (!("IntersectionObserver" in window)) {
+    items.forEach((item) => item.classList.add("reveal", "is-visible"));
+    return;
+  }
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -276,7 +313,7 @@ document.addEventListener("click", (event) => {
   if (event.target.classList.contains("fa-times")) {
     event.target.closest(".cart-item")?.remove();
   }
-  if (event.target.classList.contains("quick-close") || event.target === quickView) {
+  if (quickView && (event.target.classList.contains("quick-close") || event.target === quickView)) {
     quickView.classList.remove("active");
     quickView.setAttribute("aria-hidden", "true");
   }
@@ -296,7 +333,7 @@ document.addEventListener("mousemove", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
+  if (quickView && event.key === "Escape") {
     quickView.classList.remove("active");
     quickView.setAttribute("aria-hidden", "true");
   }

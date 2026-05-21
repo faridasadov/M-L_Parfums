@@ -58,7 +58,8 @@ INSERT INTO products (id, name, category, price, old_price, currency, image, rat
   (6, 'Royal Oud', 'catalog', 95.00, 129.00, 'AZN', '/img/product/6.jpg', 5.0),
   (7, 'Golden Bloom', 'products', 72.00, 96.00, 'AZN', '/img/product/7.jpg', 4.5),
   (8, 'Midnight Pour Femme', 'products', 88.00, 115.00, 'AZN', '/img/product/8.jpg', 5.0),
-  (9, 'Fresh Signature', 'products', 61.00, 79.00, 'AZN', '/img/product/9.jpg', 4.5)
+  (9, 'Fresh Signature', 'products', 61.00, 79.00, 'AZN', '/img/product/9.jpg', 4.5),
+  (10, 'Crystal Muse', 'products', 70.00, 92.00, 'AZN', '/img/product/10.jpg', 4.5)
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   category = VALUES(category),
